@@ -22,7 +22,7 @@ function newAnt(initialPos::Tuple{T,T}, initialHead::Tuple{T,T}, id::Int, enviro
     #  make composable later on -> potential use of Base.@kwdef struct kwargs
     θ = deg2rad(45)
     radius = 0.5
-    sensorArr = sensorArray(positions, heading, θ, radius)
+    sensorArr = sensorArray(position, heading, θ, radius)
     return Ants.Ant2D(position, heading, sensorArr, id)
 end
 
@@ -68,13 +68,26 @@ function isInCircle(circle::Sensor2D{T}, pheromones::Vector{Cartesian2D{T}}) whe
     for P in pheromones
         xl = circle.point.x - P.x
         yl = circle.point.y - P.y
-        if circle.radius <= sqrt(xl^2 + yl^2)
+        if circle.radius >= sqrt(xl^2 + yl^2)
             push!(out, true)
         else
             push!(out, false)
         end
     end
-    return count(==(true), out)
+    # return count(==(true), out)
+    return out
+end
+
+inCircle(tuple, radius) = radius >= sqrt(tuple[1]^2 + tuple[2]^2) ? true : false
+
+function countPheromones(ant::Ant2D{T}, pheromones::Vector{Cartesian2D{T}}) where {T}
+    leftDiff = [(pheromones[i].x - ant.sensor.left.point.x, pheromones[i].y - ant.sensor.left.point.y) for i in 1:length(pheromones)]
+    centerDiff = [(pheromones[i].x - ant.sensor.center.point.x, pheromones[i].y - ant.sensor.center.point.y) for i in 1:length(pheromones)]
+    rightDiff = [(pheromones[i].x - ant.sensor.right.point.x, pheromones[i].y - ant.sensor.right.point.y) for i in 1:length(pheromones)]
+    leftCount = count(x -> inCircle(x, ant.sensor.left.radius), leftDiff)
+    centerCount = count(x -> inCircle(x, ant.sensor.center.radius), centerDiff)
+    rightCount = count(x -> inCircle(x, ant.sensor.right.radius), rightDiff)
+    return (leftCount, centerCount, rightCount)
 end
 
 genPheronomesTest(num) = [Cartesian2D(Random.rand(0.:0.01:100.), Random.rand(0.:0.01:100.)) for i in 1:num]
