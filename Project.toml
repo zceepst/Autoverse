@@ -1,0 +1,10 @@
+name = "Autoverse"
+uuid = "23b4bfcc-a988-4a2a-b6b0-40e5eb71ca3c"
+authors = ["zceepst <pbsteen123@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
