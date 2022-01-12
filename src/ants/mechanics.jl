@@ -63,35 +63,23 @@ function sensorArray(position, heading, θ, radius)
     )
 end
 
-function isInCircle(circle::Sensor2D{T}, pheromones::Vector{Cartesian2D{T}}) where {T}
-    out = []
-    for P in pheromones
-        xl = circle.point.x - P.x
-        yl = circle.point.y - P.y
-        if circle.radius >= sqrt(xl^2 + yl^2)
-            push!(out, true)
-        else
-            push!(out, false)
-        end
-    end
-    # return count(==(true), out)
-    return out
-end
-
 inCircle(tuple, radius) = radius >= sqrt(tuple[1]^2 + tuple[2]^2) ? true : false
 
-function countPheromones(ant::Ant2D{T}, pheromones::Vector{Cartesian2D{T}}) where {T}
-    leftDiff = [(pheromones[i].x - ant.sensor.left.point.x, pheromones[i].y - ant.sensor.left.point.y) for i in 1:length(pheromones)]
-    centerDiff = [(pheromones[i].x - ant.sensor.center.point.x, pheromones[i].y - ant.sensor.center.point.y) for i in 1:length(pheromones)]
-    rightDiff = [(pheromones[i].x - ant.sensor.right.point.x, pheromones[i].y - ant.sensor.right.point.y) for i in 1:length(pheromones)]
-    leftCount = count(x -> inCircle(x, ant.sensor.left.radius), leftDiff)
-    centerCount = count(x -> inCircle(x, ant.sensor.center.radius), centerDiff)
-    rightCount = count(x -> inCircle(x, ant.sensor.right.radius), rightDiff)
-    return (leftCount, centerCount, rightCount)
+function sensorPheromoneCount(ant::Ant2D{T}, points::Vector{Cartesian2D{T}}, whichSensor::Symbol) where {T}
+    diff = [(points[i].x - getproperty(ant.sensor, whichSensor).point.x, points[i].y - getproperty(ant.sensor, whichSensor).point.y) for i in 1:length(points)]
+    return count(x -> inCircle(x, getproperty(ant.sensor, whichSensor).radius), diff)
+end
+
+"Returns the symbol of the sensor which picked up the most pheromone trails"
+function attractorSensor(ant::Ant2D{T}, pheromones::Vector{Cartesian2D{T}}) where {T}
+    count = [sensorPheromoneCount(ant, pheromones, symbol) for symbol in [:left, :center, :right]]
+    # center shifted, to be chosen in case of no unique maximum sensor count
+    countDict = Dict(count[1] => :left, count[3] => :right, count[2] => :center)
+    return countDict[max(keys(countDict)...)]
 end
 
 genPheronomesTest(num) = [Cartesian2D(Random.rand(0.:0.01:100.), Random.rand(0.:0.01:100.)) for i in 1:num]
 
+# generate next heading value based on pheromone trails and infused randomness
 function newHeading(ant::Ants.Ant2D{T}, env::Ants.Environment{T}) where {T}
-
 end
